@@ -1,0 +1,26 @@
+Classes
+------------------
+- Start classes
+  - Setup  # one-time player setup - handles player selection and player class initialization
+    - Mark method  # assigns mark ("X", "O") based on player number (1, 2)
+- Player classes  # create players 1 & 2 via new instances of a player class
+  - Sequential  # makes moves in sequential order
+  - Random  # makes moves in random order
+  - Human  # gets moves from human play
+  - AI  # gets moves from AI based on decision trees
+- Action classes
+  - Turn  # determine player turn by looking at board layout
+  - Input  # prompts player for move
+  - Move  # receives move from player
+  - Position  # translates move into array position
+  - Board  # updates board with move
+- UI classes
+  - Console  # display for terminal
+  - Web  # display for web
+------------------
+Player Setup Flow  # after Setup, p1 should be associated with a player class type and a mark
+- Select Player 1 > Sequential type > Sequential.new(p1) > assign mark ("X")
+- Select Player 2 > Random type > Random.new(p2) > assign mark ("O")
+------------------
+Gameplay Flow
+  - Turn > Input > Move > Position > Board > UI
