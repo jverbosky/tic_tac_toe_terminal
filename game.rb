@@ -46,17 +46,17 @@ class Game
   def select_players
     @console.select_players  # prompt for player type selection
     case @console.p1_type
-      when "human" then @p1 = PlayerHuman.new; @p1_type = "human"
-      when "perfect" then @p1 = PlayerPerfect.new; @p1_type = "perfect"
-      when "random" then @p1 = PlayerRandom.new; @p1_type = "random"
-      when "sequential" then @p1 = PlayerSequential.new; @p1_type = "sequential"
+      when "human" then @p1 = PlayerHuman.new
+      when "perfect" then @p1 = PlayerPerfect.new
+      when "random" then @p1 = PlayerRandom.new
+      when "sequential" then @p1 = PlayerSequential.new
       else puts "not a valid type"
     end
     case @console.p2_type
-      when "human" then @p2 = PlayerHuman.new; @p2_type = "human"
-      when "perfect" then @p2 = PlayerPerfect.new; @p2_type = "perfect"
-      when "random" then @p2 = PlayerRandom.new; @p2_type = "random"
-      when "sequential" then @p2 = PlayerSequential.new; @p2_type = "sequential"
+      when "human" then @p2 = PlayerHuman.new
+      when "perfect" then @p2 = PlayerPerfect.new
+      when "random" then @p2 = PlayerRandom.new
+      when "sequential" then @p2 = PlayerSequential.new
       else puts "not a valid type"
     end
   end
