@@ -86,8 +86,7 @@ class PlayerPerfect
     if adj_cor_edg?(player, opponent)  # if O has an adjacent corner and edge to opponent corner
       position = win_check(wins, player, opponent)  # use win logic
     elsif (player & @corners).size == 2 && (opponent & @corners).size == 1  # if O took a corner in round 2
-      position = win_check(wins, player, opponent)  # use win logic
-      # position = sel_spec_cor(player, opponent)  # take the last available corner
+      position = sel_spec_cor(player, opponent)  # take the last available corner
     elsif (player & @corners).size == 2 && (opponent & @corners).size == 0  # if O is perfect, will have center+edge
       position = block_check(wins, player, opponent)  # so block at opposite edge
     else
@@ -366,16 +365,17 @@ end
 #-----------------------------------------------------------------------------
 # Random tests
 #-----------------------------------------------------------------------------
-# board.game_board = ["O", "O", "", "", "", "", "X", "", "X"]  # (b2)
+#
 #-----------------------------------------------------------------------------
 
-# round = 5
-# mark = "X"
+# round = board.get_round(board.x_count, board.o_count)
+# puts "Round: #{round}"
+# mark = board.get_mark(board.x_count, board.o_count)
 # wins = board.wins
 # x_pos = board.get_x
 # o_pos = board.get_o
 # # puts "Player: #{x_pos}"  # X rounds (odd)
 # # puts "Opponent: #{o_pos}"  # X rounds (odd)
-# # puts "Player: #{o_pos}"  # O rounds (even)
-# # puts "Opponent: #{x_pos}"  # O rounds (even)
+# puts "Player: #{o_pos}"  # O rounds (even)
+# puts "Opponent: #{x_pos}"  # O rounds (even)
 # puts p1.get_move(board.game_board, round, mark, wins, x_pos, o_pos)
