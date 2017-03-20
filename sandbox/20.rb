@@ -8,15 +8,15 @@ wins = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4,
 # player = [1, 5, 6]  # 0/7/8
 # opponent = [2, 3, 4]
 # player = [1, 5]
-# opponent = [4, 7]  # 6
+# opponent = [4, 7]  # 2
 # player = [4, 7]
 # opponent = [1, 5, 6]  # 0/2
 # player = [2, 4]
 # opponent = [1, 5, 6]
 # player = [4]
 # opponent = [3, 7]  # 6
-player = [0, 4]
-opponent = [1, 3, 8]
+# player = [0, 4]
+# opponent = [1, 3, 8]
 
 # Method to return array of potential wins for forking player
 def get_potential_wins(wins, forker, forkee)
@@ -80,6 +80,21 @@ def check_forks_o(wins, player, opponent)
   end
   return move
 end
+
+# Generalized O - prioritize fork block
+def check_forks(wins, player, opponent)
+  block_fork = find_fork(wins, opponent, player)
+  get_fork = find_fork(wins, player, opponent)
+  if block_fork.size > 0
+    move = block_fork.sample
+  elsif get_fork.size > 0
+    move = get_fork.sample
+  else
+    move = sel_rand(player, opponent)
+  end
+  return move
+end
+
 
 # Method to return a random open position, called when no win/block moves in rounds 8 and 9
 def sel_rand(player, opponent)

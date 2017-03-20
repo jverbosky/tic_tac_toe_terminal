@@ -52,23 +52,24 @@ class PlayerPerfect2
 
   # Method to handle logic based on move O made in round 2
   def move_r3(wins, player, opponent)
+    taken = player + opponent  # all occupied board positions
     if (opponent & @edges).size > 0  # if O took an edge
       position = 4  # then take center
     elsif (opponent & @center).size > 0  # if O took center
       position = sel_op_cor(player)  # the take the opposite corner
-    else  # if O took a corner, need to figure out which one
-      position = win_check(wins, player, opponent)
+    else  # if O took a corner, take an open corner
+      position = (@corners - taken).sample
     end
   end
-
-### Need to add logic to block forks ###
 
 # Method to handle logic based on player positions in round 4
   def move_r4(wins, player, opponent)
     taken = player + opponent  # all occupied board positions
     if (opponent & @opcor_1).size == 2 || (opponent & @opcor_2).size == 2  # if X took opposite corners
+      puts "r4 if random edge"
       position = @edges.sample  # take an edge, any edge
     elsif (opponent & @opedg_1).size == 2 || (opponent & @opedg_2).size == 2  # if X took opposite edges
+      puts "r4 elsif random corner"
       position = @corners.sample  # take a corner, any corner
     
       ## blocking a fork by taking a specific corner
@@ -76,13 +77,16 @@ class PlayerPerfect2
     #   position = sel_mid_cor(player, opponent)  # take the corner between adjacent edges
   
       ## blocking a fork by taking a corner
-    # elsif (taken & (@opcor_1 + @center)).size == 3 || (taken & (@opcor_2 + @center)).size == 3  # if X+O have opcor pair and center
-    #   position = sel_avail_cor(player, opponent)  # take a random open corner
+    elsif (taken & (@opcor_1 + @center)).size == 3 || (taken & (@opcor_2 + @center)).size == 3  # if X+O have opcor pair and center
+      puts "r4 elsif sel_avail_cor"
+      position = sel_avail_cor(player, opponent)  # take a random open corner
 
 
-    # elsif (opponent & @edges).size == 1 && (opponent & @corners).size == 1  # if X has one edge and one corner
-    #   position = sel_adj_edg(wins, player, opponent)  # take the edge opposite opponent corner or block
+    elsif (opponent & @edges).size == 1 && (opponent & @corners).size == 1  # if X has one edge and one corner
+      puts "r4 elsif sel_adj_edg"
+      position = sel_adj_edg(wins, player, opponent)  # take the edge opposite opponent corner or block
     else
+      puts "r4 else"
       # position = block_check(wins, player, opponent)  # otherwise block at edge
       position = win_check(wins, player, opponent)
     end
@@ -92,6 +96,27 @@ class PlayerPerfect2
   def sel_op_cor(corner)
     # if @opcor_1 and corner differ by 1 opposite corner is in @opcor_1, otherwise its in @opcor_2
     (@opcor_1 - corner).size == 1 ? position = (@opcor_1 - corner)[0] : position = (@opcor_2 - corner)[0]
+  end
+
+  # Method to return random open corner when player and opponent occupy one pair of opposing corners
+  def sel_avail_cor(player, opponent)
+    taken = player + opponent  # all occupied board positions
+    # determine which corners are taken and take a random corner from the open opcor pair
+    (taken & @opcor_1).size == 2 ? position = @opcor_2.sample : position = @opcor_1.sample
+  end
+
+  # Method to select open adjacent edge across from opponent corner
+  def sel_adj_edg(wins, player, opponent)
+    adjacent = false  # determine adjacency
+    @sides.each { |side| adjacent = true if (opponent & side).size > 1 }  # check if edge and corner are adjacent
+    if adjacent == false  # if edge and corner not adjacent, take open edge opposite opponent corner
+      corner = (@corners & opponent)[0]  # opponent corner
+      edge = @edges & opponent  # opponent edge
+      op_adjedg = @adjedg[@corners.index(corner)]  # pair of adjacent edges opposite to corner
+      position = (op_adjedg - edge)[0]  # take open edge in adjacent edges pair
+    else
+      position = block_check(wins, player, opponent)  # otherwise edge and corner are adjacent, so block at corner
+    end
   end
 
   # Method to return position to win, call block_check() if no wins
@@ -153,7 +178,7 @@ class PlayerPerfect2
     position_counts.each do |position, count|
       forking_moves.push(position) if count > 1
     end
-    return forking_moves
+    (forking_moves & forker).empty? ? forking_moves : []
   end
 
   # Method to return hash of positions and counts to help identify forks
@@ -416,9 +441,10 @@ end
 #-----------------------------------------------------------------------------
 # board.game_board = ["O", "O", "", "", "", "", "X", "", "X"]  # (b2)
 # board.game_board = ["", "X", "", "O", "O", "X", "X", "" ""]  # (b3/t3)
+# board.game_board = ["", "X", "", "", "O", "", "", "", "X"]
 #-----------------------------------------------------------------------------
 
-# round = 6
+# round = 4
 # mark = "O"
 # wins = board.wins
 # x_pos = board.get_x
