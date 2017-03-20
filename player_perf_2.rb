@@ -68,8 +68,8 @@ class PlayerPerfect2
     taken = player + opponent  # all occupied board positions
     if (opponent & @opcor_1).size == 2 || (opponent & @opcor_2).size == 2  # if X took opposite corners
       position = @edges.sample  # take an edge, any edge
-    # elsif (opponent & @opedg_1).size == 2 || (opponent & @opedg_2).size == 2  # if X took opposite edges
-    #   position = @corners.sample  # take a corner, any corner
+    elsif (opponent & @opedg_1).size == 2 || (opponent & @opedg_2).size == 2  # if X took opposite edges
+      position = @corners.sample  # take a corner, any corner
     
       ## blocking a fork by taking a specific corner
     # elsif (opponent & @edges).size == 2  # if X took adjacent edges (already filtered opposite edges)
@@ -114,85 +114,136 @@ class PlayerPerfect2
       position.push(difference[0]) unless (player & difference).size == 1 if difference.size == 1
     end
     # position.size > 0 ? position.sample : sel_rand(player, opponent)  # .sample in case of multiple
-    position.size > 0 ? position.sample : block_fork(wins, player, opponent)  # .sample in case of multiple
+    position.size > 0 ? position.sample : fork_check(wins, player, opponent)  # .sample in case of multiple
   end
 
-  def block_fork(wins, opponent, player)
-    puts "yep"
-    moves = []
-    corner_fork = get_corner_fork(wins, opponent, player)
-    edge_fork = get_edge_fork(wins, opponent, player)
-    center_fork = get_center_fork(wins, opponent, player)
-    if edge_fork.size > 0  # preference edges
-      moves += edge_fork
-    elsif corner_fork.size > 0  # then corners
-      moves += corner_fork
-    elsif center_fork.size > 0  # then center
-      moves += center_fork
+  # Method to return move that will block a fork, create a fork, or fallback on random
+  def fork_check(wins, player, opponent)
+    block_fork = find_fork(wins, opponent, player)
+    get_fork = find_fork(wins, player, opponent)
+    move = nil
+    if get_fork.size > 0
+      move = get_fork.sample
+    elsif block_fork.size > 0
+      move = block_fork.sample
+    # if block_fork.size > 0
+    #   move = block_fork.sample
+    # elsif get_fork.size > 0
+    #   move = get_fork.sample
+    else
+      move = sel_rand(player, opponent)
     end
-    moves.size > 0 ? moves.sample : get_fork(wins, opponent, player)
+    return move  # 2/8
   end
 
-  def get_fork(wins, player, opponent)
-    moves = []
-    corner_fork = get_corner_fork(wins, player, opponent)
-    edge_fork = get_edge_fork(wins, player, opponent)
-    center_fork = get_center_fork(wins, player, opponent)
-    if corner_fork.size > 0  # preference corners
-      moves += corner_fork
-    elsif edge_fork.size > 0  # then edges
-      moves += edge_fork
-    elsif center_fork.size > 0  # then center
-      moves += center_fork
+  # Method to return array of positions that will result in a fork
+  def find_fork(wins, forker, forkee)
+    position_counts = count_positions(wins, forker, forkee)
+    forking_moves = []
+    position_counts.each do |position, count|
+      forking_moves.push(position) if count > 1
     end
-    moves.size > 0 ? moves.sample : sel_rand(player, opponent)
+    return forking_moves  # [2, 8]
   end
 
-  def get_matchups(wins, player, opponent)
-    matchups = []
+  # Method to return hash of positions and counts to help identify forks
+  def count_positions(wins, forker, forkee)
+    potential_wins = get_potential_wins(wins, forker, forkee)
+    position_counts = {}
+    potential_wins.each do |potential_win|
+      potential_win.each do |position|
+        position_counts[position] = 0 if position_counts[position] == nil
+        position_counts[position] += 1
+      end
+    end
+    return position_counts  # {0=>1, 1=>1, 2=>2, 6=>1, 7=>1, 8=>2, 5=>1}
+  end
+
+  # Method to return array of potential wins for forking player
+  def get_potential_wins(wins, forker, forkee)
+    potential_wins = []
     wins.each do |win|
-      if (player & win).size > 0 && (opponent & win).size == 0
-        matchups.push(win)
-      end
+      potential_wins.push(win) if (forker & win).size > 0 && (forkee & win).size == 0
     end
-    return matchups
+    return potential_wins  # [[0, 1, 2], [6, 7, 8], [2, 5, 8]]
   end
 
-  def get_corner_fork(wins, player, opponent)
-    matchups = get_matchups(wins, player, opponent)
-    moves_corner = []
-    matchups.each do |matchup|
-      open_corner = (matchup - player) & @corners
-      if open_corner.size > 0  # preference corners
-        moves_corner += open_corner
-      end
-    end
-    return moves_corner
-  end
+  # def block_fork(wins, opponent, player)
+  #   puts "yep"
+  #   moves = []
+  #   corner_fork = get_corner_fork(wins, opponent, player)
+  #   edge_fork = get_edge_fork(wins, opponent, player)
+  #   center_fork = get_center_fork(wins, opponent, player)
+  #   if edge_fork.size > 0  # preference edges
+  #     moves += edge_fork
+  #   elsif corner_fork.size > 0  # then corners
+  #     moves += corner_fork
+  #   elsif center_fork.size > 0  # then center
+  #     moves += center_fork
+  #   end
+  #   moves.size > 0 ? moves.sample : get_fork(wins, opponent, player)
+  # end
 
-  def get_edge_fork(wins, player, opponent)
-    matchups = get_matchups(wins, player, opponent)
-    moves_edge = []
-    matchups.each do |matchup|
-      open_edge = (matchup - player) & @edges
-      if open_edge.size > 0  # preference edge
-        moves_edge += open_edge
-      end
-    end
-    return moves_edge
-  end
+  # def get_fork(wins, player, opponent)
+  #   moves = []
+  #   corner_fork = get_corner_fork(wins, player, opponent)
+  #   edge_fork = get_edge_fork(wins, player, opponent)
+  #   center_fork = get_center_fork(wins, player, opponent)
+  #   if corner_fork.size > 0  # preference corners
+  #     moves += corner_fork
+  #   elsif edge_fork.size > 0  # then edges
+  #     moves += edge_fork
+  #   elsif center_fork.size > 0  # then center
+  #     moves += center_fork
+  #   end
+  #   moves.size > 0 ? moves.sample : sel_rand(player, opponent)
+  # end
 
-  def get_center_fork(wins, player, opponent)
-    matchups = get_matchups(wins, player, opponent)
-    moves_center = []
-    matchups.each do |matchup|
-      open_center = (matchup - player) & @center
-      if open_center.size > 0  # preference center
-        moves_center += open_center
-      end
-    end
-    return moves_center
-  end
+  # def get_matchups(wins, player, opponent)
+  #   matchups = []
+  #   wins.each do |win|
+  #     if (player & win).size > 0 && (opponent & win).size == 0
+  #       matchups.push(win)
+  #     end
+  #   end
+  #   return matchups
+  # end
+
+  # def get_corner_fork(wins, player, opponent)
+  #   matchups = get_matchups(wins, player, opponent)
+  #   moves_corner = []
+  #   matchups.each do |matchup|
+  #     open_corner = (matchup - player) & @corners
+  #     if open_corner.size > 0  # preference corners
+  #       moves_corner += open_corner
+  #     end
+  #   end
+  #   return moves_corner
+  # end
+
+  # def get_edge_fork(wins, player, opponent)
+  #   matchups = get_matchups(wins, player, opponent)
+  #   moves_edge = []
+  #   matchups.each do |matchup|
+  #     open_edge = (matchup - player) & @edges
+  #     if open_edge.size > 0  # preference edge
+  #       moves_edge += open_edge
+  #     end
+  #   end
+  #   return moves_edge
+  # end
+
+  # def get_center_fork(wins, player, opponent)
+  #   matchups = get_matchups(wins, player, opponent)
+  #   moves_center = []
+  #   matchups.each do |matchup|
+  #     open_center = (matchup - player) & @center
+  #     if open_center.size > 0  # preference center
+  #       moves_center += open_center
+  #     end
+  #   end
+  #   return moves_center
+  # end
 
   # Method to return a random open position, called when no win/block moves in rounds 8 and 9
   def sel_rand(player, opponent)
@@ -207,8 +258,8 @@ end
 # Sandbox testing
 # - Same tests as in test_player_perf.rb, just here to make tracing easier
 #-----------------------------------------------------------------------------
-board = Board.new
-p1 = PlayerPerfect2.new
+# board = Board.new
+# p1 = PlayerPerfect2.new
 #-----------------------------------------------------------------------------
 # Round 1 - X
 #-----------------------------------------------------------------------------
@@ -354,16 +405,16 @@ p1 = PlayerPerfect2.new
 # Random tests
 #-----------------------------------------------------------------------------
 # board.game_board = ["O", "O", "", "", "", "", "X", "", "X"]  # (b2)
-board.game_board = ["", "X", "", "O", "O", "X", "X", "" ""]
+# board.game_board = ["", "X", "", "O", "O", "X", "X", "" ""]  # (b3/t3)
 #-----------------------------------------------------------------------------
 
-round = 6
-mark = "O"
-wins = board.wins
-x_pos = board.get_x
-o_pos = board.get_o
-# # puts "Player: #{x_pos}"  # X rounds (odd)
-# # puts "Opponent: #{o_pos}"  # X rounds (odd)
-# # puts "Player: #{o_pos}"  # O rounds (even)
-# # puts "Opponent: #{x_pos}"  # O rounds (even)
-puts p1.get_move(board.game_board, round, mark, wins, x_pos, o_pos)
+# round = 6
+# mark = "O"
+# wins = board.wins
+# x_pos = board.get_x
+# o_pos = board.get_o
+# # # puts "Player: #{x_pos}"  # X rounds (odd)
+# # # puts "Opponent: #{o_pos}"  # X rounds (odd)
+# # # puts "Player: #{o_pos}"  # O rounds (even)
+# # # puts "Opponent: #{x_pos}"  # O rounds (even)
+# puts p1.get_move(board.game_board, round, mark, wins, x_pos, o_pos)
