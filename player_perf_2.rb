@@ -117,23 +117,33 @@ class PlayerPerfect2
     position.size > 0 ? position.sample : fork_check(wins, player, opponent)  # .sample in case of multiple
   end
 
-  # Method to return move that will block a fork, create a fork, or fallback on random
+  # # Method to return move to create fork, will block fork or fallback on random if none
+  # def check_forks_x(wins, player, opponent)
+  #   block_fork = find_fork(wins, opponent, player)
+  #   get_fork = find_fork(wins, player, opponent)
+  #   if get_fork.size > 0
+  #     move = get_fork.sample
+  #   elsif block_fork.size > 0
+  #     move = block_fork.sample
+  #   else
+  #     move = sel_rand(player, opponent)
+  #   end
+  #   return move
+  # end
+
+  # Method to return move to block fork, will create fork or fallback on random if none
+  # def check_forks_o(wins, player, opponent)
   def fork_check(wins, player, opponent)
     block_fork = find_fork(wins, opponent, player)
     get_fork = find_fork(wins, player, opponent)
-    move = nil
-    if get_fork.size > 0
-      move = get_fork.sample
-    elsif block_fork.size > 0
+    if block_fork.size > 0
       move = block_fork.sample
-    # if block_fork.size > 0
-    #   move = block_fork.sample
-    # elsif get_fork.size > 0
-    #   move = get_fork.sample
+    elsif get_fork.size > 0
+      move = get_fork.sample
     else
       move = sel_rand(player, opponent)
     end
-    return move  # 2/8
+    return move
   end
 
   # Method to return array of positions that will result in a fork
@@ -143,7 +153,7 @@ class PlayerPerfect2
     position_counts.each do |position, count|
       forking_moves.push(position) if count > 1
     end
-    return forking_moves  # [2, 8]
+    return forking_moves
   end
 
   # Method to return hash of positions and counts to help identify forks
