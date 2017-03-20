@@ -77,9 +77,9 @@ require_relative "console_stress_test.rb"
 # Initialize objects
 board = Board.new
 # p1 = PlayerSequential.new  # alternate p1
-p1 = PlayerRandom.new  # alternate p1
+# p1 = PlayerRandom.new  # alternate p1
 # p1 = PlayerPerfect.new
-# p1 = PlayerPerfect2.new
+p1 = PlayerPerfect2.new
 # p2 = PlayerSequential.new
 # p2 = PlayerRandom.new  # alternate p2
 # p2 = PlayerPerfect.new  # alternate p2

@@ -32,7 +32,7 @@ class PlayerPerfect2
     elsif round == 3  # in round 3
       position = move_r3(wins, player, opponent)  # determine ideal position based on O's position
     else  # in remaining rounds
-      position = win_check(wins, player, opponent)  # use win/block logic for rounds 7 and 9
+      position = win_check(wins, player, opponent)  # use win/block logic for rounds 5+
     end
   end
 
@@ -41,12 +41,10 @@ class PlayerPerfect2
     if round == 2  # in round 2
       # check if X took center and if so take a corner, otherwise take center
       (opponent & @center).size == 1 ? position = @corners.sample : position = 4
-    elsif round == 4  # in round 4
-      position = move_r4(wins, player, opponent)  # determine ideal position based on X and O's positions
-    # elsif round == 6  # in round 6
-    #   position = move_r6(wins, player, opponent)  # determine ideal position based on X and O's positions
-    else
-      position = win_check(wins, player, opponent)  # use win/block logic for round 8
+    elsif round == 4  # in round 4 determine ideal position based on X and O's positions
+      position = move_r4(wins, player, opponent)
+    else  # use win/block logic for rounds 6+
+      position = win_check(wins, player, opponent)
     end
   end
 
@@ -54,41 +52,27 @@ class PlayerPerfect2
   def move_r3(wins, player, opponent)
     taken = player + opponent  # all occupied board positions
     if (opponent & @edges).size > 0  # if O took an edge
-      position = 4  # then take center
+      position = 4  # take center
     elsif (opponent & @center).size > 0  # if O took center
-      position = sel_op_cor(player)  # the take the opposite corner
+      position = sel_op_cor(player)  # take the opposite corner
     else  # if O took a corner, take an open corner
       position = (@corners - taken).sample
     end
   end
 
-# Method to handle logic based on player positions in round 4
+  # Method to handle logic based on player positions in round 4
   def move_r4(wins, player, opponent)
     taken = player + opponent  # all occupied board positions
-    if (opponent & @opcor_1).size == 2 || (opponent & @opcor_2).size == 2  # if X took opposite corners
-      puts "r4 if random edge"
-      position = @edges.sample  # take an edge, any edge
-    elsif (opponent & @opedg_1).size == 2 || (opponent & @opedg_2).size == 2  # if X took opposite edges
-      puts "r4 elsif random corner"
-      position = @corners.sample  # take a corner, any corner
-    
-      ## blocking a fork by taking a specific corner
-    # elsif (opponent & @edges).size == 2  # if X took adjacent edges (already filtered opposite edges)
-    #   position = sel_mid_cor(player, opponent)  # take the corner between adjacent edges
-  
-      ## blocking a fork by taking a corner
-    elsif (taken & (@opcor_1 + @center)).size == 3 || (taken & (@opcor_2 + @center)).size == 3  # if X+O have opcor pair and center
-      puts "r4 elsif sel_avail_cor"
-      position = sel_avail_cor(player, opponent)  # take a random open corner
-
-
+    if (opponent & @opcor_1).size == 2 || (opponent & @opcor_2).size == 2
+      position = @edges.sample  # if X took opposite corners - take an edge, any edge
+    elsif (opponent & @opedg_1).size == 2 || (opponent & @opedg_2).size == 2
+      position = @corners.sample  # if X took opposite edges - take a corner, any corner
+    elsif (taken & (@opcor_1 + @center)).size == 3 || (taken & (@opcor_2 + @center)).size == 3
+      position = sel_avail_cor(player, opponent)  # if X+O have opcor pair and center, take random open corner
     elsif (opponent & @edges).size == 1 && (opponent & @corners).size == 1  # if X has one edge and one corner
-      puts "r4 elsif sel_adj_edg"
       position = sel_adj_edg(wins, player, opponent)  # take the edge opposite opponent corner or block
     else
-      puts "r4 else"
-      # position = block_check(wins, player, opponent)  # otherwise block at edge
-      position = win_check(wins, player, opponent)
+      position = win_check(wins, player, opponent)  # otherwise use win/block logic
     end
   end
 
@@ -126,8 +110,8 @@ class PlayerPerfect2
       difference = win - player  # difference between current win array and player position array
       # if player 1 move from win, take position unless already opponent mark
       position.push(difference[0]) unless (opponent & difference).size == 1 if difference.size == 1
-    end
-    position.size > 0 ? position.sample : block_check(wins, player, opponent)  # .sample in case of multiple
+    end  # .sample in case of multiple wins, otherwise check for blocks
+    position.size > 0 ? position.sample : block_check(wins, player, opponent)
   end
 
   # Method to return position to block, call sel_rand() if no blocks (rounds 8 and 9)
@@ -137,34 +121,22 @@ class PlayerPerfect2
       difference = win - opponent  # difference between current win array and opponent position array
       # if opponent 1 move from win, block position unless already player mark
       position.push(difference[0]) unless (player & difference).size == 1 if difference.size == 1
-    end
-    # position.size > 0 ? position.sample : sel_rand(player, opponent)  # .sample in case of multiple
-    position.size > 0 ? position.sample : fork_check(wins, player, opponent)  # .sample in case of multiple
+    end  # .sample in case of multiple blocks, otherwise check for forks
+    position.size > 0 ? position.sample : fork_check(wins, player, opponent)
   end
 
-  # # Method to return move to create fork, will block fork or fallback on random if none
-  # def check_forks_x(wins, player, opponent)
-  #   block_fork = find_fork(wins, opponent, player)
-  #   get_fork = find_fork(wins, player, opponent)
-  #   if get_fork.size > 0
-  #     move = get_fork.sample
-  #   elsif block_fork.size > 0
-  #     move = block_fork.sample
-  #   else
-  #     move = sel_rand(player, opponent)
-  #   end
-  #   return move
-  # end
-
   # Method to return move to block fork, will create fork or fallback on random if none
-  # def check_forks_o(wins, player, opponent)
   def fork_check(wins, player, opponent)
     block_fork = find_fork(wins, opponent, player)
     get_fork = find_fork(wins, player, opponent)
-    if block_fork.size > 0
-      move = block_fork.sample
-    elsif get_fork.size > 0
+    if get_fork.size > 0
       move = get_fork.sample
+    elsif block_fork.size > 0
+      move = block_fork.sample
+    # if block_fork.size > 0
+    #   move = block_fork.sample
+    # elsif get_fork.size > 0
+    #   move = get_fork.sample
     else
       move = sel_rand(player, opponent)
     end
@@ -200,85 +172,8 @@ class PlayerPerfect2
     wins.each do |win|
       potential_wins.push(win) if (forker & win).size > 0 && (forkee & win).size == 0
     end
-    return potential_wins  # [[0, 1, 2], [6, 7, 8], [2, 5, 8]]
+    return potential_wins
   end
-
-  # def block_fork(wins, opponent, player)
-  #   puts "yep"
-  #   moves = []
-  #   corner_fork = get_corner_fork(wins, opponent, player)
-  #   edge_fork = get_edge_fork(wins, opponent, player)
-  #   center_fork = get_center_fork(wins, opponent, player)
-  #   if edge_fork.size > 0  # preference edges
-  #     moves += edge_fork
-  #   elsif corner_fork.size > 0  # then corners
-  #     moves += corner_fork
-  #   elsif center_fork.size > 0  # then center
-  #     moves += center_fork
-  #   end
-  #   moves.size > 0 ? moves.sample : get_fork(wins, opponent, player)
-  # end
-
-  # def get_fork(wins, player, opponent)
-  #   moves = []
-  #   corner_fork = get_corner_fork(wins, player, opponent)
-  #   edge_fork = get_edge_fork(wins, player, opponent)
-  #   center_fork = get_center_fork(wins, player, opponent)
-  #   if corner_fork.size > 0  # preference corners
-  #     moves += corner_fork
-  #   elsif edge_fork.size > 0  # then edges
-  #     moves += edge_fork
-  #   elsif center_fork.size > 0  # then center
-  #     moves += center_fork
-  #   end
-  #   moves.size > 0 ? moves.sample : sel_rand(player, opponent)
-  # end
-
-  # def get_matchups(wins, player, opponent)
-  #   matchups = []
-  #   wins.each do |win|
-  #     if (player & win).size > 0 && (opponent & win).size == 0
-  #       matchups.push(win)
-  #     end
-  #   end
-  #   return matchups
-  # end
-
-  # def get_corner_fork(wins, player, opponent)
-  #   matchups = get_matchups(wins, player, opponent)
-  #   moves_corner = []
-  #   matchups.each do |matchup|
-  #     open_corner = (matchup - player) & @corners
-  #     if open_corner.size > 0  # preference corners
-  #       moves_corner += open_corner
-  #     end
-  #   end
-  #   return moves_corner
-  # end
-
-  # def get_edge_fork(wins, player, opponent)
-  #   matchups = get_matchups(wins, player, opponent)
-  #   moves_edge = []
-  #   matchups.each do |matchup|
-  #     open_edge = (matchup - player) & @edges
-  #     if open_edge.size > 0  # preference edge
-  #       moves_edge += open_edge
-  #     end
-  #   end
-  #   return moves_edge
-  # end
-
-  # def get_center_fork(wins, player, opponent)
-  #   matchups = get_matchups(wins, player, opponent)
-  #   moves_center = []
-  #   matchups.each do |matchup|
-  #     open_center = (matchup - player) & @center
-  #     if open_center.size > 0  # preference center
-  #       moves_center += open_center
-  #     end
-  #   end
-  #   return moves_center
-  # end
 
   # Method to return a random open position, called when no win/block moves in rounds 8 and 9
   def sel_rand(player, opponent)
