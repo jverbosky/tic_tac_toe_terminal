@@ -17,6 +17,7 @@
 # require_relative "board.rb"
 # require_relative "player_perf.rb"
 # require_relative "player_perf_2.rb"
+# require_relative "player_perf_3.rb"
 # require_relative "player_seq.rb"
 # require_relative "player_rand.rb"
 # require_relative "position.rb"
@@ -25,12 +26,19 @@
 # # Initialize objects
 # board = Board.new
 # # p1 = PlayerSequential.new  # alternate p1
-# # p1 = PlayerRandom.new  # alternate p1
+# p1_type = "Random"
+# p1 = PlayerRandom.new  # alternate p1
+# # p1_type = "Perfect"
 # # p1 = PlayerPerfect.new
-# p1 = PlayerPerfect2.new
+# # p1 = PlayerPerfect2.new
+# # p1 = PlayerPerfect3.new
 # # p2 = PlayerSequential.new
-# p2 = PlayerRandom.new  # alternate p2
+# # p2_type = "Random"
+# # p2 = PlayerRandom.new  # alternate p2
+# p2_type = "Perfect"
 # # p2 = PlayerPerfect.new  # alternate p2
+# # p2 = PlayerPerfect2.new  # alternate p2
+# p2 = PlayerPerfect3.new  # alternate p2
 # position = Position.new
 # console = ConsoleStressTest.new
 
@@ -46,10 +54,16 @@
 # while x_won == false && o_won == false && full == false
 #   round = board.get_round(board.x_count, board.o_count)  # puts round  # see the current round number
 #   round % 2 == 0 ? player = p2 : player = p1  # puts player  # see which player moved during this turn
+#   round % 2 == 0 ? p_type = p2_type : p_type = p1_type  # puts player  # see which player moved during this turn
 #   mark = board.get_mark(board.x_count, board.o_count)  # puts mark  # see which mark was used
 #   x_pos = board.get_x
 #   o_pos = board.get_o
-#   move = player.get_move(board.game_board, round, mark, wins, x_pos, o_pos)  # puts move  # see what game_board position was selected
+#   # move = player.get_move(board.game_board, round, mark, wins, x_pos, o_pos)  # puts move  # see what game_board position was selected
+#   if p_type == "Perfect"
+#     move = player.get_move(wins, x_pos, o_pos, mark)  # use for PerfectPlayer3
+#   else
+#     move = player.get_move(board.game_board, round, mark, wins, x_pos, o_pos)  # use for PerfectPlayer3
+#   end
 #   location = position.get_index(move)  # puts location  # see the corresponding game_board array index
 #   board.set_position(location, mark)
 #   x_won = board.x_won?(board.get_x)  # puts x_won  # see if x won (t/f)
@@ -69,6 +83,7 @@
 require_relative "board.rb"
 require_relative "player_perf.rb"
 require_relative "player_perf_2.rb"
+require_relative "player_perf_3.rb"
 require_relative "player_seq.rb"
 require_relative "player_rand.rb"
 require_relative "position.rb"
@@ -77,13 +92,19 @@ require_relative "console_stress_test.rb"
 # Initialize objects
 board = Board.new
 # p1 = PlayerSequential.new  # alternate p1
+# p1_type = "Random"
 # p1 = PlayerRandom.new  # alternate p1
+p1_type = "Perfect"
 # p1 = PlayerPerfect.new
-p1 = PlayerPerfect2.new
+# p1 = PlayerPerfect2.new
+p1 = PlayerPerfect3.new
 # p2 = PlayerSequential.new
-# p2 = PlayerRandom.new  # alternate p2
+p2_type = "Random"
+p2 = PlayerRandom.new  # alternate p2
+# p2_type = "Perfect"
 # p2 = PlayerPerfect.new  # alternate p2
-p2 = PlayerPerfect2.new
+# p2 = PlayerPerfect2.new  # alternate p2
+# p2 = PlayerPerfect3.new  # alternate p2
 position = Position.new
 console = ConsoleStressTest.new
 
@@ -104,10 +125,16 @@ end
 while x_won == false && o_won == false && full == false
   round = board.get_round(board.x_count, board.o_count)  # puts round  # see the current round number
   round % 2 == 0 ? player = p2 : player = p1  # puts player  # see which player moved during this turn
+  round % 2 == 0 ? p_type = p2_type : p_type = p1_type  # puts player  # see which player moved during this turn
   mark = board.get_mark(board.x_count, board.o_count)  # puts mark  # see which mark was used
   x_pos = board.get_x
   o_pos = board.get_o
-  move = player.get_move(board.game_board, round, mark, wins, x_pos, o_pos)  # puts move  # see what game_board position was selected
+  # move = player.get_move(board.game_board, round, mark, wins, x_pos, o_pos)  # puts move  # see what game_board position was selected
+  if p_type == "Perfect"
+    move = player.get_move(wins, x_pos, o_pos, mark)  # use for PerfectPlayer3
+  else
+    move = player.get_move(board.game_board, round, mark, wins, x_pos, o_pos)  # use for PerfectPlayer3
+  end
   location = position.get_index(move)  # puts location  # see the corresponding game_board array index
   board.set_position(location, mark)
   x_won = board.x_won?(board.get_x)  # puts x_won  # see if x won (t/f)
